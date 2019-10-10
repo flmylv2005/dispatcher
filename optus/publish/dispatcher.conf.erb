@@ -1,0 +1,148 @@
+<%
+# Copyright © 2015 Versent Pty. Ltd.  - All Rights Reserved
+# For more details please see:
+# http://versent.com.au/software-licence.html
+# License subject to change at Versent's discretion.
+# Contact: info@versent.com.au
+-%>
+LoadModule dispatcher_module modules/mod_dispatcher.so
+LoadModule reqtimeout_module modules/mod_reqtimeout.so
+LoadModule headers_module modules/mod_headers.so
+
+<IfModule disp_apache2.c>
+  DispatcherConfig conf/dispatcher.any
+  DispatcherLog logs/dispatcher.log
+  DispatcherLogLevel 1
+  DispatcherNoServerHeader 0
+  DispatcherDeclineRoot 0
+  DispatcherUseProcessedURL 1
+  DispatcherPassError 1
+</IfModule>
+
+<LocationMatch "^/dispatcher/invalidate.cache$">
+    # domain optus.com.au
+    SetEnv FLUSH_HOST flush.optus.com.au
+    RequestHeader set Host %{FLUSH_HOST}e env=FLUSH_HOST
+    
+    # domain retail.optus.com.au
+    SetEnvIf CQ-Path ".*/content/optus-mr.*" FLUSH_HOST flush.retail.optus.com.au
+    RequestHeader set Host %{FLUSH_HOST}e env=FLUSH_HOST
+
+    SetEnvIf CQ-Path ".*/content/dam/optus-mr.*" FLUSH_HOST=flush.retail.optus.com.au
+    RequestHeader set Host %{FLUSH_HOST}e env=FLUSH_HOST
+
+    SetEnvIf CQ-Path ".*/etc/designs/springd/clientlibs/mr-uxf.*" FLUSH_HOST=flush.retail.optus.com.au
+    RequestHeader set Host %{FLUSH_HOST}e env=FLUSH_HOST
+    
+</LocationMatch>
+
+Listen 443
+
+RequestReadTimeout header=10-30,MinRate=500 body=20,MinRate=500
+<% @OPTUS_VIRTUAL_HOST.each do |host| %>
+<VirtualHost *:443>
+  ServerName <%= host %>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache/oca
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache/oca>
+
+      <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+      </IfModule>
+      Options -Indexes +FollowSymLinks +IncludesNOEXEC
+      AllowOverride All
+
+      Require all granted
+
+      Include conf.d/optus-dispatcher.con[f]
+  </Directory>
+
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/aem.crt
+  SSLCertificateKeyFile /etc/ssl/certs/aem.key
+</VirtualHost>
+
+<% end %>
+
+<% @OPTUS_VIRTUAL_HOST.each do |host| %>
+<VirtualHost *:80>
+  ServerName <%= host %>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache/oca
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache/oca>
+
+    <IfModule disp_apache2.c>
+    SetHandler dispatcher-handler
+    ModMimeUsePathInfo On
+    </IfModule>
+    Options -Indexes +FollowSymLinks +IncludesNOEXEC
+    AllowOverride All
+
+    Require all granted
+
+    Include conf.d/optus-dispatcher.con[f]
+  </Directory>
+
+</VirtualHost>
+
+<% end %>
+
+<% @RETAIL_VIRTUAL_HOST.each do |host| %>
+<VirtualHost *:443>
+  ServerName <%= host %>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache/optusmr
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache/optusmr>
+
+    <IfModule disp_apache2.c>
+    SetHandler dispatcher-handler
+    ModMimeUsePathInfo On
+    </IfModule>
+    Options -Indexes +FollowSymLinks +IncludesNOEXEC
+    AllowOverride All
+
+    Require all granted
+
+
+    Include conf.d/optusmr-dispatcher.con[f]
+
+  </Directory>
+
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/aem.crt
+  SSLCertificateKeyFile /etc/ssl/certs/aem.key
+</VirtualHost>
+<% end %>
+
+<% @RETAIL_VIRTUAL_HOST.each do |host| %>
+<VirtualHost *:80>
+  ServerName <%= host %>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache/optusmr
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache/optusmr>
+
+    <IfModule disp_apache2.c>
+    SetHandler dispatcher-handler
+    ModMimeUsePathInfo On
+    </IfModule>
+    Options -Indexes +FollowSymLinks +IncludesNOEXEC
+    AllowOverride All
+
+    Require all granted
+
+    Include conf.d/optusmr-dispatcher.con[f]
+
+  </Directory>
+</VirtualHost>
+<% end %>

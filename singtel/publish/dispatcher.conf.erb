@@ -1,0 +1,309 @@
+<%
+# Copyright © 2015 Versent Pty. Ltd.  - All Rights Reserved
+# For more details please see:
+# http://versent.com.au/software-licence.html
+# License subject to change at Versent's discretion.
+# Contact: info@versent.com.au
+-%>
+LoadModule dispatcher_module modules/mod_dispatcher.so
+
+<IfModule disp_apache2.c>
+  DispatcherConfig conf/dispatcher.any
+  DispatcherLog logs/dispatcher.log
+  DispatcherLogLevel 3
+  DispatcherNoServerHeader 0
+  DispatcherDeclineRoot 0
+  DispatcherUseProcessedURL 1
+  DispatcherPassError 1
+</IfModule>
+
+Listen 443
+
+<VirtualHost *:443>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache
+  ProxyPass /cse/search http://info.singtel.com/cse/search
+  
+  RewriteEngine On
+
+  #Rwrite Condition to allow specific selector in URL, In future add more selector adding pipes
+  RewriteCond %{REQUEST_URI} ^/(.*)\.(.*)
+  RewriteRule  ^/(.*\/)([^.]*.?)(?<![\w\d])(questionsone|questionstwo|personaldetailsone|personaldetailstwo|personaldetailsthree|personaldetailsfour|personaldetailsfive|ending|af_AFG|air-craft|al_ALAND|al_ALB|dz_DZA|ad_AND|ao_AGO|ai_AIA|ag_ATG|ar_ARG|am_ARM|aw_ABW|au_AUS|at_AUT|az_AZE|azo_AZORES|bs_BHS|bh_BHR|bd_BGD|bbd_BARBADOS|by_BLR|be_BEL|bz_BLZ|bj_BEN|bm_BMU|bt_BTN|bo_BOL|bhm_BORNHOLM|ba_BIH|bw_BWA|br_BRA|vg_VGB|bn_BRN|bg_BGR|bf_BFA|bi_BDI|kh_KHM|cm_CMR|ca_CAN|canary-islands|cv_CPV|ky_CYM|cf_CAF|ce_CEUTA|td_TCD|channel-islands|cl_CHL|cn_CHN|co_COL|congo-drc|corsica-corse|cr_CRI|cote-d-ivoire-ivory-coast|crete-kriti|hr_HRV|cu_CUB|cyc_CYCLADES|cy_CYP|cz_CZE|dk_DNK|dj_DJI|dm_DMA|do_DOM|ec_ECU|eg_EGY|sv_SLV|gq_GNQ|er_ERI|ee_EST|et_ETH|fo_FRO|fj_FJI|fi_FIN|frm_FORMENTERA|fr_FRA|french-west-indies|ga_GAB|gm_GMB|ge_GEO|de_DEU|gh_GHA|gi_GIB|gt_GOTLAND|gr_GRC|gd_GRD|gp_GLP|gu_GUM|gt_GTM|gg_GGY|gn_GIN|guinea-bissau|gy_GUY|hw_HAWAII|heb_HEBRIDES|hn_HND|hk_HKG|hu_HUN|ibiza-evissa|is_ISL|in_IND|id_IDN|ionian-islands|ir_IRN|iq_IRQ|ie_IRL|isle-of-man|il_ISR|it_ITA|jm_JAM|jp_JPN|je_JEY|jo_JOR|ka_KAUAI|kz_KAZ|ke_KEN|kw_KWT|kg_KGZ|la_LAO|lv_LVA|lb_LBN|lr_LBR|ly_LBY|li_LIE|lt_LTU|lu_LUX|mac_MACAU|mk_MKD|mg_MDG|mad_MADEIRA|mw_MWI|my_MYS|mv_MDV|ml_MLI|mal_MALLORCA|mt_MLT|ma_MARITIME|mq_MTQ|mr_MRT|mu_MUS|mel_MELILLA|men_MENORCA|mx_MEX|md_MDA|mc_MCO|mn_MNG|me_MNE|ms_MSR|ma_MAR|mz_MOZ|mm_MMR|na_NAM|np_NPL|nl_NLD|an_ANT|nc_NCL|nz_NZL|ni_NIC|ne_NER|ng_NGA|northern-ireland|no_NOR|ol_OLAND|om_OMN|orkney-islands|pk_PAK|pw_PLW|ps_PSE|pa_PAN|pg_PNG|py_PRY|pel_PELOPONNESE|pe_PER|ph_PHL|pl_POL|pt_PRT|pr_PRI|qa_QAT|re_REU|rodrigues-island|ro_ROU|ru_RUS|rw_RWA|sakhalin-island|sm_SMR|sar_SARDINIA|sa_SAU|sn_SEN|rs_SRB|sc_SYC|sh_SHETLAND|sicily-sicillia|sl_SLE|slovak-republic|si_SVN|so_SOM|za_ZAF|kr_KOR|es_ESP|lk_LKA|st-barthelemy|st-kitts-and-nevis|st-lucia|st-martin|st-vincent-and-the-grenadines|sd_SDN|sr_SUR|sv_SVALBARD|sz_SWZ|se_SWE|ch_CHE|sy_SYR|tahiti-french-polynesia|tw_TWN|tj_TJK|tz_TZA|th_THA|tl_TLS|tg_TGO|to_TON|tt_TTO|tn_TUN|tr_TUR|tm_TKM|turks-and-caicos|us-virgin-islands|us_USA|ug_UGA|ua_UKR|ae_ARE|gb_GBR|uy_URY|uz_UZB|vu_VUT|vatican-city|ve_VEN|vn_VNM|eh_ESH|ye_YEM|zm_ZMB|za_ZANZIBAR|zw_ZWE|contactForm|educators|parentForm|seniorForm|specialNeedForm|support|singtelWifi|feedback|enquiry|webform_client_form_2498|normar_ISLAND)(?![\w\d])(.html) /content/singtel/en/$1$2$3.html [PT,L]
+
+  # Remove trailing slashes from URL as they cause issues with some rewrites
+  RewriteRule ^(.*)/$ $1 [R=301,L]
+
+  # Remove .html and rewrite as 301
+  RewriteRule ^(.*)\.html(.*) https://www.singtel.com$1$2 [R=301,L]
+  
+  # Home page rewrite
+  RewriteRule ^/$ /content/singtel/en/personal.html [PT,L]
+  
+  
+  # Add a .html extension to all URLs other than DAM and servlets that don't have an extension
+  RewriteCond %{REQUEST_URI} !/(lib/.*|etc/.*|content/dam/.*|bin/services/.*)$
+  RewriteCond %{REQUEST_URI} !.*/[^/]+\.[a-zA-Z]+$
+  RewriteRule ^(.*)$ $1.html
+
+  RewriteRule ^(/content/singtel/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+  RewriteRule ^(/content/homelinetest/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+
+  RewriteCond %{REQUEST_URI} (.*)/cn/(.*)$
+  RewriteRule ^\/cn\/(.*\.)(html|xml|txt)$ /content/singtel/cn/$1$2 [PT,L]
+
+  # This rule will add /content/singtel/en in front of every link unless it starts with  /content/singtel/en or adds /content/homelinetest/en for homeline test URLS
+  # or the link starts with /content/campaigs
+  # AND the link ends with html or xml or txt
+  #RewriteCond %{REQUEST_URI} !/(content/singtel/.*)$
+  #RewriteRule ^(.*\.)(html|xml|txt)$ /content/singtel/en$1$2 [PT,L]
+  
+   RewriteCond %{REQUEST_URI} ^/(tech-line-test*|tech-line-test/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/homelinetest/en$1$2 [PT,L]
+  
+  RewriteCond %{REQUEST_URI} !/(tech-line-test*|content/singtel/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/singtel/en$1$2 [PT,L]
+
+  # DAM Image Versioning
+  RewriteCond %{REQUEST_URI} ^(/content/dam/.*)$
+  RewriteCond %{REQUEST_URI} (.*)/version(.*)/(.*)$
+  RewriteRule ^(.*)/version(.*)/(.*\.)(jpg|jpeg|png)$ $1/$3$4
+
+  #Adding SUBSTITUTE code here...to remove /content/singtel/en from page
+
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/singtel/en||n"
+  
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/singtel/cn|/cn|n" 
+  
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/homelinetest/en||n"
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+	Options -Indexes -MultiViews +FollowSymLinks +IncludesNOEXEC
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+
+    ErrorDocument 404 /includes/error/404
+    ErrorDocument 500 /includes/error/maintenance
+
+    AddHandler server-parsed .html
+    AddType text/html .html
+    AddOutputFilter INCLUDES .html
+	
+  </Directory>
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/aem.crt
+  SSLCertificateKeyFile /etc/ssl/certs/aem.key
+</VirtualHost>
+
+<VirtualHost *:80>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache
+  ProxyPass /cse/search http://info.singtel.com/cse/search
+  
+  RewriteEngine On
+
+  #Rwrite Condition to allow specific selector in URL, In future add more selector adding pipes
+  RewriteCond %{REQUEST_URI} ^/(.*)\.(.*)
+  RewriteRule  ^/(.*\/)([^.]*.?)(?<![\w\d])(questionsone|questionstwo|personaldetailsone|personaldetailstwo|personaldetailsthree|personaldetailsfour|personaldetailsfive|ending|af_AFG|air-craft|al_ALAND|al_ALB|dz_DZA|ad_AND|ao_AGO|ai_AIA|ag_ATG|ar_ARG|am_ARM|aw_ABW|au_AUS|at_AUT|az_AZE|azo_AZORES|bs_BHS|bh_BHR|bd_BGD|bbd_BARBADOS|by_BLR|be_BEL|bz_BLZ|bj_BEN|bm_BMU|bt_BTN|bo_BOL|bhm_BORNHOLM|ba_BIH|bw_BWA|br_BRA|vg_VGB|bn_BRN|bg_BGR|bf_BFA|bi_BDI|kh_KHM|cm_CMR|ca_CAN|canary-islands|cv_CPV|ky_CYM|cf_CAF|ce_CEUTA|td_TCD|channel-islands|cl_CHL|cn_CHN|co_COL|congo-drc|corsica-corse|cr_CRI|cote-d-ivoire-ivory-coast|crete-kriti|hr_HRV|cu_CUB|cyc_CYCLADES|cy_CYP|cz_CZE|dk_DNK|dj_DJI|dm_DMA|do_DOM|ec_ECU|eg_EGY|sv_SLV|gq_GNQ|er_ERI|ee_EST|et_ETH|fo_FRO|fj_FJI|fi_FIN|frm_FORMENTERA|fr_FRA|french-west-indies|ga_GAB|gm_GMB|ge_GEO|de_DEU|gh_GHA|gi_GIB|gt_GOTLAND|gr_GRC|gd_GRD|gp_GLP|gu_GUM|gt_GTM|gg_GGY|gn_GIN|guinea-bissau|gy_GUY|hw_HAWAII|heb_HEBRIDES|hn_HND|hk_HKG|hu_HUN|ibiza-evissa|is_ISL|in_IND|id_IDN|ionian-islands|ir_IRN|iq_IRQ|ie_IRL|isle-of-man|il_ISR|it_ITA|jm_JAM|jp_JPN|je_JEY|jo_JOR|ka_KAUAI|kz_KAZ|ke_KEN|kw_KWT|kg_KGZ|la_LAO|lv_LVA|lb_LBN|lr_LBR|ly_LBY|li_LIE|lt_LTU|lu_LUX|mac_MACAU|mk_MKD|mg_MDG|mad_MADEIRA|mw_MWI|my_MYS|mv_MDV|ml_MLI|mal_MALLORCA|mt_MLT|ma_MARITIME|mq_MTQ|mr_MRT|mu_MUS|mel_MELILLA|men_MENORCA|mx_MEX|md_MDA|mc_MCO|mn_MNG|me_MNE|ms_MSR|ma_MAR|mz_MOZ|mm_MMR|na_NAM|np_NPL|nl_NLD|an_ANT|nc_NCL|nz_NZL|ni_NIC|ne_NER|ng_NGA|northern-ireland|no_NOR|ol_OLAND|om_OMN|orkney-islands|pk_PAK|pw_PLW|ps_PSE|pa_PAN|pg_PNG|py_PRY|pel_PELOPONNESE|pe_PER|ph_PHL|pl_POL|pt_PRT|pr_PRI|qa_QAT|re_REU|rodrigues-island|ro_ROU|ru_RUS|rw_RWA|sakhalin-island|sm_SMR|sar_SARDINIA|sa_SAU|sn_SEN|rs_SRB|sc_SYC|sh_SHETLAND|sicily-sicillia|sl_SLE|slovak-republic|si_SVN|so_SOM|za_ZAF|kr_KOR|es_ESP|lk_LKA|st-barthelemy|st-kitts-and-nevis|st-lucia|st-martin|st-vincent-and-the-grenadines|sd_SDN|sr_SUR|sv_SVALBARD|sz_SWZ|se_SWE|ch_CHE|sy_SYR|tahiti-french-polynesia|tw_TWN|tj_TJK|tz_TZA|th_THA|tl_TLS|tg_TGO|to_TON|tt_TTO|tn_TUN|tr_TUR|tm_TKM|turks-and-caicos|us-virgin-islands|us_USA|ug_UGA|ua_UKR|ae_ARE|gb_GBR|uy_URY|uz_UZB|vu_VUT|vatican-city|ve_VEN|vn_VNM|eh_ESH|ye_YEM|zm_ZMB|za_ZANZIBAR|zw_ZWE|contactForm|educators|parentForm|seniorForm|specialNeedForm|support|singtelWifi|feedback|enquiry|webform_client_form_2498|normar_ISLAND)(?![\w\d])(.html) /content/singtel/en/$1$2$3.html [PT,L]
+
+  # Remove trailing slashes from URL as they cause issues with some rewrites
+  RewriteRule ^(.*)/$ $1 [R=301,L]
+
+  # Remove .html and rewrite as 301
+  RewriteRule ^(.*)\.html(.*) https://www.singtel.com$1$2 [R=301,L]
+  
+  # Home page rewrite
+  RewriteRule ^/$ /content/singtel/en/personal.html [PT,L]
+  
+  
+  # Add a .html extension to all URLs other than DAM and servlets that don't have an extension
+  RewriteCond %{REQUEST_URI} !/(lib/.*|etc/.*|content/dam/.*|bin/services/.*)$
+  RewriteCond %{REQUEST_URI} !.*/[^/]+\.[a-zA-Z]+$
+  RewriteRule ^(.*)$ $1.html
+
+  RewriteRule ^(/content/singtel/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+  RewriteRule ^(/content/homelinetest/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+
+  RewriteCond %{REQUEST_URI} (.*)/cn/(.*)$
+  RewriteRule ^\/cn\/(.*\.)(html|xml|txt)$ /content/singtel/cn/$1$2 [PT,L]
+
+  # This rule will add /content/singtel/en in front of every link unless it starts with  /content/singtel/en or adds /content/homelinetest/en for homeline test URLS
+  # or the link starts with /content/campaigs
+  # AND the link ends with html or xml or txt
+  #RewriteCond %{REQUEST_URI} !/(content/singtel/.*)$
+  #RewriteRule ^(.*\.)(html|xml|txt)$ /content/singtel/en$1$2 [PT,L]
+  
+   RewriteCond %{REQUEST_URI} ^/(tech-line-test*|tech-line-test/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/homelinetest/en$1$2 [PT,L]
+  
+  RewriteCond %{REQUEST_URI} !/(tech-line-test*|content/singtel/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/singtel/en$1$2 [PT,L]
+
+  # DAM Image Versioning
+  RewriteCond %{REQUEST_URI} ^(/content/dam/.*)$
+  RewriteCond %{REQUEST_URI} (.*)/version(.*)/(.*)$
+  RewriteRule ^(.*)/version(.*)/(.*\.)(jpg|jpeg|png)$ $1/$3$4
+
+  #Adding SUBSTITUTE code here...to remove /content/singtel/en from page
+
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/singtel/en||n"
+
+  
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/singtel/cn|/cn|n" 
+  
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/homelinetest/en||n"
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+	Options -Indexes -MultiViews +FollowSymLinks +IncludesNOEXEC
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+
+    ErrorDocument 404 /includes/error/404
+    ErrorDocument 500 /includes/error/maintenance
+
+    AddHandler server-parsed .html
+    AddType text/html .html
+    AddOutputFilter INCLUDES .html
+	
+  </Directory>	
+</VirtualHost>
+
+<VirtualHost *:80>
+	ServerName <%= @newDomainName %>
+	# DocumentRoot dispatcher/cache
+	DocumentRoot <%= @aem_path %>/dispatcher/cache
+	   
+	RewriteEngine On
+
+
+  # Remove trailing slashes from URL as they cause issues with some rewrites
+  RewriteRule ^(.*)/$ $1 [R=301,L]
+
+  # Remove .html and rewrite as 301
+  RewriteRule ^(.*)\.html(.*) $1$2 [R=301,L]
+  
+  # Home page rewrite
+  RewriteRule ^/$ /content/internal/en.html [PT,L]
+  
+  
+  # Add a .html extension to all URLs other than DAM and servlets that don't have an extension
+    RewriteCond %{REQUEST_URI} !/(content/dam/internal/.*)$
+  RewriteCond %{REQUEST_URI} !.*/[^/]+\.[a-zA-Z]+$
+  RewriteRule ^(.*)$ $1.html
+
+  RewriteRule ^(/content/internal/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+
+  # This rule will add /content/internal/en in front of every link unless it starts with  /content/internal/en
+  # or the link starts with /content/campaigs
+  # AND the link ends with html or xml or txt
+  RewriteCond %{REQUEST_URI} !/(content/internal/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/internal/en$1$2 [PT,L]
+
+  # DAM Image Versioning
+  RewriteCond %{REQUEST_URI} ^(/content/dam/internal/.*)$
+  RewriteCond %{REQUEST_URI} (.*)/version(.*)/(.*)$
+  RewriteRule ^(.*)/version(.*)/(.*\.)(jpg|jpeg|png)$ $1/$3$4
+
+  #Adding SUBSTITUTE code here...to remove /content/internal/en from page
+
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/internal/en||n"
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+	Options -Indexes -MultiViews +FollowSymLinks +IncludesNOEXEC
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+
+    ErrorDocument 404 /includes/error/404
+    ErrorDocument 500 /includes/error/maintenance
+
+    AddHandler server-parsed .html
+    AddType text/html .html
+    AddOutputFilter INCLUDES .html
+	
+  </Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+	ServerName <%= @newDomainName %>
+	# DocumentRoot dispatcher/cache
+	DocumentRoot <%= @aem_path %>/dispatcher/cache
+	   
+	RewriteEngine On
+
+
+  # Remove trailing slashes from URL as they cause issues with some rewrites
+  RewriteRule ^(.*)/$ $1 [R=301,L]
+
+  # Remove .html and rewrite as 301
+  RewriteRule ^(.*)\.html(.*) $1$2 [R=301,L]
+  
+  # Home page rewrite
+  RewriteRule ^/$ /content/internal/en.html [PT,L]
+  
+  
+  # Add a .html extension to all URLs other than DAM and servlets that don't have an extension
+    RewriteCond %{REQUEST_URI} !/(content/dam/internal/.*)$
+  RewriteCond %{REQUEST_URI} !.*/[^/]+\.[a-zA-Z]+$
+  RewriteRule ^(.*)$ $1.html
+
+  RewriteRule ^(/content/internal/en/.*)\.(html|xml|txt)$ $1.$2 [PT,L]
+
+  # This rule will add /content/internal/en in front of every link unless it starts with  /content/internal/en
+  # or the link starts with /content/campaigs
+  # AND the link ends with html or xml or txt
+  RewriteCond %{REQUEST_URI} !/(content/internal/.*)$
+  RewriteRule ^(.*\.)(html|xml|txt)$ /content/internal/en$1$2 [PT,L]
+
+  # DAM Image Versioning
+  RewriteCond %{REQUEST_URI} ^(/content/dam/internal/.*)$
+  RewriteCond %{REQUEST_URI} (.*)/version(.*)/(.*)$
+  RewriteRule ^(.*)/version(.*)/(.*\.)(jpg|jpeg|png)$ $1/$3$4
+
+  #Adding SUBSTITUTE code here...to remove /content/internal/en from page
+
+  AddOutputFilterByType SUBSTITUTE text/html
+  Substitute "s|/content/internal/en||n"
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+	Options -Indexes -MultiViews +FollowSymLinks +IncludesNOEXEC
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+
+    ErrorDocument 404 /includes/error/404
+    ErrorDocument 500 /includes/error/maintenance
+
+    AddHandler server-parsed .html
+    AddType text/html .html
+    AddOutputFilter INCLUDES .html
+	
+  </Directory>
+</VirtualHost>

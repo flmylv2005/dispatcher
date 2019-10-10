@@ -1,0 +1,66 @@
+<%
+# Copyright © 2015 Versent Pty. Ltd.  - All Rights Reserved
+# For more details please see:
+# http://versent.com.au/software-licence.html
+# License subject to change at Versent's discretion.
+# Contact: info@versent.com.au
+-%>
+LoadModule dispatcher_module modules/mod_dispatcher.so
+LoadModule reqtimeout_module modules/mod_reqtimeout.so
+
+<IfModule disp_apache2.c>
+  DispatcherConfig conf/dispatcher.any
+  DispatcherLog logs/dispatcher.log
+  DispatcherLogLevel 3
+  DispatcherNoServerHeader 0
+  DispatcherDeclineRoot 0
+  DispatcherUseProcessedURL 0
+  DispatcherPassError 1
+</IfModule>
+
+Listen 443
+
+RequestReadTimeout header=10-30,MinRate=500 body=20,MinRate=500
+
+
+<VirtualHost *:443>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+	
+	ErrorDocument 404 /content/optus/en/includes/404.html
+  </Directory>
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/aem.crt
+  SSLCertificateKeyFile /etc/ssl/certs/aem.key
+</VirtualHost>
+
+<VirtualHost *:80>
+  DocumentRoot <%= @aem_path %>/dispatcher/cache
+
+  AllowEncodedSlashes On
+
+  <Directory <%= @aem_path %>/dispatcher/cache>
+    <IfModule disp_apache2.c>
+      SetHandler dispatcher-handler
+      ModMimeUsePathInfo On
+    </IfModule>
+    AllowOverride None
+    <% if @apache_ver == "2.4" -%>
+    Require all granted
+    <% end -%>
+	
+	ErrorDocument 404 /content/optus/en/includes/404.html
+  </Directory>
+</VirtualHost>

@@ -1,0 +1,10 @@
+# Each farm configures a set of load balanced renders (i.e. remote servers)
+/farms
+  {
+  # First farm entry for singtel.com
+  $include "dispatcher_singtel_com.any" # This is the farm defined for singtel.com in dispatcher_singtel_com.any file
+  
+  # Second farm entry for internal.singtel.com
+  $include "dispatcher_internal_singtel_com.any" # This is the farm defined for internal.singtel.com in dispatcher_internal_singtel_com.any file
+
+  }

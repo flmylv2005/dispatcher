@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.singtel.springd</groupId>
+    <artifactId>dispatcher</artifactId>
+    <version>0.0.41-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <scm>
+        <url>https://stash.apps.springdigital-devisland.com.au/projects/SD/repos/dispatcher</url>
+        <developerConnection>scm:git:ssh://git@stash.apps.springdigital-devisland.com.au:7999/sd/dispatcher.git</developerConnection>
+        <connection>scm:git:ssh://git@stash.apps.springdigital-devisland.com.au:7999/sd/dispatcher.git</connection>
+        <tag>dispatcher-0.0.4</tag>
+    </scm>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-artifacts</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>optus/author/author-dispatcher.any.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.any.author.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>optus/author/author-dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.conf.author.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>optus/publish/dispatcher.any.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.any.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>optus/publish/dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.conf.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>optus/publish/optus-dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>optus-dispatcher.conf.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>optus/publish/optusmr-dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>optusmr-dispatcher.conf.optus</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>singtel/author/author-dispatcher.any.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.any.author.singtel</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>singtel/author/author-dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.conf.author.singtel</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>singtel/publish/dispatcher.any.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.any.singtel</classifier>
+                                </artifact>
+                                <artifact>
+                                    <file>singtel/publish/dispatcher.conf.erb</file>
+                                    <type>erb</type>
+                                    <classifier>dispatcher.conf.singtel</classifier>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>perform</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <preparationGoals>clean install</preparationGoals>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>https://nexus.apps.springdigital-devisland.com.au/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>nexus-release</id>
+            <url>https://nexus.apps.springdigital-devisland.com.au/nexus/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
+
+</project>
